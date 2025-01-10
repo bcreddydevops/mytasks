@@ -155,7 +155,7 @@ echo "**************************************************************************
 
 ##########################################################################################
 #
-# Function    : copy_artifacts
+# Function    : copy_artifacts - Deployment the application.
 # Description : This function copies the downloaded artifacts from downloades folder to
 #		CRTREVAMP folder. First it creates a backup of files inside CRTREVAMP
 #		and then copies the war files.
@@ -163,22 +163,22 @@ echo "**************************************************************************
 ##########################################################################################
 
 copy_artifacts(){
-if [[ $backup == "yes" ]]; then
-	if [ ! -d $crt_root ]; then
-  		mkdir $crt_root
-	fi
+if [ ! -d $crt_root ]; then
+	mkdir $crt_root
+fi
 	cd $crt_root
-	#creating backup
-	tmstmp=$(date '+%Y%m%d.%H%M%S')
-	print_message Creating backup ${crt_root}/backup_${tmstmp}
-	mkdir backup_$tmstmp
-	cp *.war backup_${tmstmp}/
-	tar cvf backup_${tmstmp}.tar backup_$tmstmp && rm -rf backup_$tmstmp && mv backup_${tmstmp}.tar backup/
+ 	if [[ $backup == "yes" ]]; then
+		#creating backup
+		tmstmp=$(date '+%Y%m%d.%H%M%S')
+		print_message Creating backup ${crt_root}/backup_${tmstmp}
+		mkdir backup_$tmstmp
+		cp *.war backup_${tmstmp}/
+		tar cvf backup_${tmstmp}.tar backup_$tmstmp && rm -rf backup_$tmstmp && mv backup_${tmstmp}.tar backup/
+  	else
+ 		print_message Skipping the backup as you have choosen backup=$backup  
+ 	fi
 	print_message Copying artifacts from ${tmp_dir} to $crt_root
-	cp -r ${tmp_dir}/*.war .
- else
- 	print_message Skipping the backup as you have choosen backup=$backup  
- fi
+	cp -r ${tmp_dir}/*.war . 
 }
 
 ##########################################################################################
