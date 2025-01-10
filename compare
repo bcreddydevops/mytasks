@@ -1,0 +1,37 @@
+copy_artifacts() {
+    if [ ! -d $crt_root ]; then
+        mkdir -p $crt_root
+    fi
+    cd $crt_root
+
+    # Current timestamp
+    current_time=$(date '+%s') # Current time in seconds since epoch
+
+    # Check if there are existing backups
+    latest_backup=$(ls -d backup_* 2>/dev/null | tail -n 1) # Get the most recent backup folder
+    if [ -n "$latest_backup" ]; then
+        # Extract the timestamp from the folder name (backup_YYYYMMDD.HHMMSS)
+        last_backup_time=$(echo "$latest_backup" | sed 's/backup_//' | sed 's/\./ /' | xargs -I {} date -d {} '+%s')
+
+        # Calculate the time difference
+        time_diff=$((current_time - last_backup_time))
+
+        # 2 hours = 7200 seconds
+        if [ $time_diff -lt 7200 ]; then
+            print_message "Less than 2 hours since last backup. Skipping backup creation."
+            return
+        fi
+    fi
+
+    # Create a new backup
+    tmstmp=$(date '+%Y%m%d.%H%M%S')
+    print_message "Creating backup ${crt_root}/backup_${tmstmp}"
+    mkdir -p backup_$tmstmp
+    cp *.war backup_${tmstmp}/
+    tar cvf backup_${tmstmp}.tar backup_${tmstmp} && rm -rf backup_${tmstmp}
+    mv backup_${tmstmp}.tar backup/
+
+    # Copy artifacts to CRTREVAMP folder
+    print_message "Copying artifacts from ${tmp_dir} to $crt_root"
+    cp -r ${tmp_dir}/*.war .
+}
