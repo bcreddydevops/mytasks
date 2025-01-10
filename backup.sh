@@ -15,7 +15,7 @@ This script downloads artifacts from nexus to artifact_download folder.
 Snapshot Repository : https://nexusrepo.abcd.com/content/repositories/CRTSnapshots/
 Release Repository  : https://nexusrepo.abcd.com/content/repositories/CRTReleases/
 
-usge : $0 artifact_type version service1,service2, ... ,serviceN
+usge : $0 artifact_type version service1,service2, ... ,serviceN backup
 
       artifact_type : Artifact type must be either snapshot or release
       version       : Version of artifact
@@ -24,8 +24,9 @@ usge : $0 artifact_type version service1,service2, ... ,serviceN
 			                  crtadmin-servicefacade
 			                  crtrevamp-crtclaim
 			                  crtrevamp-crtcustomer
-			                  crtrevamp-crtec
-
+      			                  crtrevamp-crtec
+       backup	    : yes or no   
+     	
 EOF
 exit 1
 
@@ -35,6 +36,7 @@ nexus_username="abcd"
 nexus_password="xxxxxx"
 type=$1
 version=$2
+backup=$4
 services=$(echo $3 | tr ',' ' ')
 script_dir=$(pwd)
 tmp_dir=$script_dir/downloads
@@ -42,7 +44,7 @@ user=$(whoami)
 crt_root=/ngs/app/$user/CRTREVAMP
 tmp_dir=$script_dir/downloads
 
-if [ $# -lt 3 ]; then
+if [ $# -lt 4 ]; then
   usage
 fi
 
@@ -161,19 +163,22 @@ echo "**************************************************************************
 ##########################################################################################
 
 copy_artifacts(){
-if [ ! -d $crt_root ]; then
-  	mkdir $crt_root
-fi
-cd $crt_root
-#creating backup
-tmstmp=$(date '+%Y%m%d.%H%M%S')
-print_message Creating backup ${crt_root}/backup_${tmstmp}
-mkdir backup_$tmstmp
-cp *.war backup_${tmstmp}/
-tar cvf backup_${tmstmp}.tar backup_$tmstmp && rm -rf backup_$tmstmp && mv backup_${tmstmp}.tar backup/
-print_message Copying artifacts from ${tmp_dir} to $crt_root
-cp -r ${tmp_dir}/*.war .
-
+if [[ $backup == "yes" ]]; then
+	if [ ! -d $crt_root ]; then
+  		mkdir $crt_root
+	fi
+	cd $crt_root
+	#creating backup
+	tmstmp=$(date '+%Y%m%d.%H%M%S')
+	print_message Creating backup ${crt_root}/backup_${tmstmp}
+	mkdir backup_$tmstmp
+	cp *.war backup_${tmstmp}/
+	tar cvf backup_${tmstmp}.tar backup_$tmstmp && rm -rf backup_$tmstmp && mv backup_${tmstmp}.tar backup/
+	print_message Copying artifacts from ${tmp_dir} to $crt_root
+	cp -r ${tmp_dir}/*.war .
+ else
+ 	print_message Skipping the backup as you have choosen backup=$backup  
+ fi
 }
 
 ##########################################################################################
